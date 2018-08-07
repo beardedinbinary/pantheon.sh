@@ -1,0 +1,72 @@
+#!/bin/bash
+
+ENVMT=pantheon.everbrite-customer-portal
+URL=everbrite-customer-portal.pantheonsite.io
+
+function _cim {
+  set -x
+  drush @$ENVMT.$1 cim -y sync && \
+  drush @$ENVMT.$1 cr
+  set +x
+}
+
+function _cr {
+  set -x
+  drush @$ENVMT.$1 cr
+  set +x
+}
+
+function _open {
+  set -x
+  open http://$1-$URL
+  set +x
+}
+
+function _tag {
+  echo _tag: NOP
+}
+
+case "$1" in
+
+  cim)
+    _cim $2
+    ;;
+  cr)
+    _cr $2
+    ;;
+  dev)
+    _cim dev
+    _open dev
+    ;;
+  live)
+    _tag live
+    _cim live
+    _open live
+    ;;
+  open)
+    _open $2
+    ;;
+  tag)
+    _tag $2
+    ;;
+  test)
+    _tag test
+    _cim test
+    _open test
+    ;;
+  *)
+    echo `basename $0`: simple utility for pantheon
+    echo ENV is 'dev|test|live'
+    echo args:
+    echo \   help: this help
+    echo \   tag  ENV: tag latest git HEAD for deployment on ENV '(not dev)'
+    echo \   cim  ENV: config sync and cache reload on ENV
+    echo \   cr   ENV: cache reload on ENV
+    echo \   open ENV: open browser to ENV
+    echo
+    echo \   dev : cim and open DEV
+    echo \   test: tag, cim, and open TEST
+    echo \   live: tag, cim, and open LIVE
+    ;;
+
+esac
