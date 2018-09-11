@@ -22,8 +22,24 @@ function _open {
   set +x
 }
 
+function _sleep {
+  echo -n sleeping $1 seconds:' '
+  a=$1
+  while [ $a -gt 0 ]; do
+    echo -n .
+    sleep 1
+    a=$[ $a - 1 ]
+  done
+  echo \ ok
+}
+
 function _tag {
-  echo _tag: NOP
+  set -x
+  CUR_TAG=$(git tag | grep -i pantheon_$1 | cut -d _ -f 3 | sort -nr | head -n 1)
+  let NEXT_TAG=$CUR_TAG+1
+  git tag pantheon_$1_$NEXT_TAG
+  git push --tags
+  set +x
 }
 
 case "$1" in
@@ -40,17 +56,22 @@ case "$1" in
     ;;
   live)
     _tag live
+    _sleep 8
     _cim live
     _open live
     ;;
   open)
     _open $2
     ;;
+  sleep)
+    _sleep $2
+    ;;
   tag)
     _tag $2
     ;;
   test)
     _tag test
+    _sleep 8
     _cim test
     _open test
     ;;
