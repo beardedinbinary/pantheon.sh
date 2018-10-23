@@ -1,18 +1,18 @@
 #!/bin/bash
 
-ENVMT=pantheon.everbrite-customer-portal
+ENVMT=everbrite-customer-portal
 URL=everbrite-customer-portal.pantheonsite.io
 
 function _cim {
   set -x
-  drush @$ENVMT.$1 cim -y sync && \
-  drush @$ENVMT.$1 cr
+  drush @$ENVMT.$1 cim -y sync
+  _cr $1
   set +x
 }
 
 function _cr {
   set -x
-  drush @$ENVMT.$1 cr
+  terminus env:cc $ENVMT.$1
   set +x
 }
 
@@ -42,6 +42,12 @@ function _tag {
   set +x
 }
 
+function _updb {
+  set -x
+  echo yes | terminus remote:drush $ENVMT.$1 updb -y
+  set +x
+}
+
 case "$1" in
 
   cim)
@@ -56,7 +62,7 @@ case "$1" in
     ;;
   live)
     _tag live
-    _sleep 8
+    _sleep 15
     _cim live
     _open live
     ;;
@@ -71,23 +77,31 @@ case "$1" in
     ;;
   test)
     _tag test
-    _sleep 8
+    _sleep 15
     _cim test
     _open test
     ;;
+  updb)
+    _updb $2
+    ;;
   *)
     echo `basename $0`: simple utility for pantheon
-    echo ENV is 'dev|test|live'
-    echo args:
-    echo \   help: this help
-    echo \   tag  ENV: tag latest git HEAD for deployment on ENV '(not dev)'
-    echo \   cim  ENV: config sync and cache reload on ENV
-    echo \   cr   ENV: cache reload on ENV
-    echo \   open ENV: open browser to ENV
-    echo
-    echo \   dev : cim and open DEV
-    echo \   test: tag, cim, and open TEST
-    echo \   live: tag, cim, and open LIVE
+    cat <<EOF
+ENV is dev|test|live
+args:
+    tag   ENV: tag latest git HEAD for deployment on ENV (not dev)
+    cim   ENV: config sync and cache reload on ENV
+    cr    ENV: cache reload on ENV
+    open  ENV: open browser to ENV
+    updb  ENV: perform db updates on ENV
+
+    dev : cim and open DEV
+    test: tag, cim, and open TEST
+    live: tag, cim, and open LIVE
+
+    sleep NUM: sleep NUM seconds
+    help: this help
+EOF
     ;;
 
 esac
