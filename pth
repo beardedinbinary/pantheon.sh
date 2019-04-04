@@ -57,12 +57,14 @@ case "$1" in
     _cr $2
     ;;
   dev)
+    _updb dev
     _cim dev
     _open dev
     ;;
   live)
     _tag live
     _sleep 15
+    _updb live
     _cim live
     _open live
     ;;
@@ -78,6 +80,7 @@ case "$1" in
   test)
     _tag test
     _sleep 15
+    _updb test
     _cim test
     _open test
     ;;
@@ -95,9 +98,9 @@ args:
     open  ENV: open browser to ENV
     updb  ENV: perform db updates on ENV
 
-    dev : cim and open DEV
-    test: tag, cim, and open TEST
-    live: tag, cim, and open LIVE
+    dev : updb, cim and open DEV
+    test: tag, updb, cim, and open TEST
+    live: tag, updb, cim, and open LIVE
 
     sleep NUM: sleep NUM seconds
     help: this help
